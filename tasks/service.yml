@@ -1,0 +1,15 @@
+---
+#now openresty gets restarted with cmd "service nginx restart"
+- name: copy openresty service file
+  template:
+    src: openresty.service.j2
+    dest: /lib/systemd/system/nginx.service
+
+- name: force systemd to reread configs
+  systemd:
+    daemon_reload: yes
+
+- name: Enable openresty service
+  service:
+    name: nginx
+    enabled: yes

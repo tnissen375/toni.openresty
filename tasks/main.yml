@@ -1,0 +1,127 @@
+---
+- name: Include facts from imagebuilder
+  import_role:
+    name: buildimages
+    tasks_from: facts
+
+- file:
+    state: directory
+    path: "{{ item }}"
+    recurse: yes
+  loop:
+    "{{ dir_exists }}"
+
+# It does not make much sense to do this on every host, dhparam can be reused!
+# https://security.stackexchange.com/questions/70831/does-dh-parameter-file-need-to-be-unique-per-private-key
+- name: Register dhparam file
+  stat:
+    path: "{{ nginx_conf_dir }}/ssl/dhp-4096.pem"
+  register: dhparam_file_path
+
+- name: Copy dhparam 
+  copy:
+    src: "{{ role_path }}/templates/dhp-4096.pem"
+    dest: "{{ nginx_conf_dir }}/ssl/dhp-4096.pem"
+
+- name: Remove nginx on host // error is ok
+  service:
+    name: nginx
+    state: stopped
+    enabled: no
+  register: result
+  ignore_errors: yes
+  failed_when:
+    - result.changed == false
+    - '"requested service" not in result.msg'  
+
+# - debug:
+#     var: result
+
+- name: Setup openresty as service (docker)
+  when: nginx_run_as|default('docker') == "service"
+  include_tasks: service.yml
+    
+- name: Register image file
+  stat:
+    path: "{{ user_path }}/{{ image_file_openresty }}"
+  register: image_file
+
+- name: remove images
+  when: force_images|default(false)
+  docker_image:
+    name: "{{ image_openresty }}"
+    force_absent: yes
+    state: absent    
+
+- name: copy tarball to host
+  when: not image_file.stat.exists or force_images|default(false)
+  copy:
+    src: "/{{ user }}/{{ image_file_openresty }}"
+    dest: "{{ user_path }}/{{ image_file_openresty }}"
+
+- name: load container from tarball
+  docker_image:
+    name: "{{ image_openresty }}"
+    load_path: "{{ user_path }}/{{ image_file_openresty }}"
+    state: present
+    source: load
+
+- name: Deploy nginx conf
+  template:
+    src: nginx.conf.j2
+    dest: "{{ nginx_conf_dir }}/nginx.conf"
+
+- name: Deploy default conf
+  template:
+    src: nginx_default.conf.j2
+    dest: "{{ nginx_conf_dir }}/conf.d/default.conf"
+
+- file:
+    state: absent
+    path: "{{ nginx_conf_dir }}/sites-enabled/default"
+
+- name: Generate docker-compose.yml file
+  when: nginx_run_as is not defined or not nginx_run_as=="service" 
+  template:
+    src: docker-compose.yml.j2
+    dest: "{{ user_path }}/openresty/docker-compose.yml"
+
+- name: Configure firewall
+  when: configure_firewall|bool
+  include_tasks: firewall.yml
+
+- name: Configure logs
+  include_tasks: logs.yml
+
+- name: Copy snippets
+  include_tasks: snippets.yml
+
+- name: Launch docker-compose
+  when: nginx_run_as is not defined or nginx_run_as=="docker"
+  docker_compose:
+    project_src: "{{ user_path }}/openresty"
+    restarted: yes
+
+- name: Launch docker-stack
+  when: nginx_run_as is defined and nginx_run_as=="stack"
+  docker_stack:
+    state: present
+    name: nginx
+    compose:
+      - "{{ user_path }}/openresty/docker-compose.yml"
+
+- name: Set certificates deployment paths as fact.
+  set_fact:
+    nginx_conf_dir: "{{ nginx_conf_dir }}"
+    cacheable: yes
+    
+- name: Remove all docker logs by cron file under /etc/cron.d
+  when: enable_clear_dockerlogs|bool==true
+  cron:
+    name: Remove logs
+    weekday: "0"
+    minute: "0"
+    hour: "3"
+    user: root
+    job: "truncate -s 0 /var/lib/docker/containers/*/*-json.log"
+  #    job: truncate -s 0 $(docker inspect --format='{{.LogPath}}' greenlight)

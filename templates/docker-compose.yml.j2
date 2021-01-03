@@ -1,0 +1,44 @@
+---
+version: "3"
+
+services:
+  nginx-proxy:
+    image: {{ image_openresty }}
+{% if docker_network_host is undefined %}
+    ports:
+      - 80:80
+      - 443:443
+{% endif %}
+    volumes:
+{% for vol in nginx_docker_volumes %}
+      - {{ vol }}
+{% endfor %}
+      - /etc/localtime:/etc/localtime:ro
+{% if existing_certs is defined and existing_certs|bool==false %}
+      - /var/www/letsencrypt:/var/www/letsencrypt
+      - /etc/letsencrypt:/etc/letsencrypt
+{% endif %}
+{% if docker_network_host is undefined %}
+    networks:
+      - {{ nginx_network_name }}
+{% else %}
+    network_mode: host
+{% endif %}
+{% if nginx_run_as is defined and nginx_run_as=="stack" %}
+    deploy:
+      placement:
+        constraints:
+{% for constraints in nginx_docker_stack_constraints %}
+          - {{ constraints }}
+{% endfor %}
+      restart_policy:
+        condition: {{ nginx_docker_stack_condition }}
+{% else %}
+    restart: unless-stopped
+{% endif %}
+
+{% if docker_network_host is undefined %}
+networks:
+  {{ nginx_network_name }}:
+    external: true
+{% endif %}

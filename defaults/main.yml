@@ -1,0 +1,63 @@
+---
+user: "root"
+user_path: "/root"
+nginx_run_as: "docker"
+nginx_docker_stack_constraints:
+  - "node.labels.manager == true"
+nginx_docker_stack_condition: "on-failure"
+configure_firewall: true
+enable_clear_dockerlogs: false
+nginx_conf_dir: "/etc/nginx"
+nginx_network_name: "nginx_net"
+nginx_network_driver: "bridge"
+#Google DNS: 8.8.8.8 8.8.4.4
+#Hetzner DNS: 213.133.98.98 213.133.100.100 213.133.99.99
+nginx_resolver: "127.0.0.11"
+openresty_session_name: "__Secure-session_resty"
+openresty_session_secret: "623q4hR325t36VsC3Da3H7922IC0073T"
+auth_provider_domain: "key.jidu.eu"
+keycloak_realm: "Intern"
+keycloak_client_name: "Nginx"
+keycloak_client_secret: "d8467b2d-85fb-46c0-9fcb-15e2dfeb4d9b"
+keycloak_redirect: "https://lab.jidu.eu/"
+auth_bypass: true
+auth_bypass_ips: ""
+nginx_ssl_stream_config: false
+
+dir_exists:
+  - "{{ nginx_conf_dir }}/ssl"
+  - "{{ nginx_conf_dir }}/vhost.d"
+  - "{{ nginx_conf_dir }}/conf.d"
+  - "{{ nginx_conf_dir }}/snippets"
+  - "{{ user_path }}/openresty"
+  - "/var/www/letsencrypt"
+  - "/etc/letsencrypt/live"
+
+nginx_logformat: "{% if nginx_access_loglevel == 'production' %}'anonymized'{% else %}'main'{% endif %}"
+nginx_docker_volumes:
+  - "/etc/nginx/nginx.conf:/etc/nginx/nginx.conf"
+  - "/etc/nginx/snippets:/etc/nginx/snippets"
+  - "/etc/nginx/conf.d:/etc/nginx/conf.d"
+  - "/etc/nginx/ssl:/etc/nginx/ssl"
+  - "/etc/nginx/vhost.d:/etc/nginx/vhost.d"
+
+#/usr/local/openresty/nginx/logs is linked to stdout / stderr
+#nginx_logfiles:
+# - { conffile: "{{ nginx_conffile_dir }}/nginx.conf", logdir: "/usr/local/openresty/nginx/logs" }
+nginx_snippets:
+    - { srcname: "auth.conf.j2", destname: "auth.conf" } 
+    - { srcname: "proxy.conf.j2", destname: "proxy.conf" }
+    - { srcname: "ssl.conf.j2", destname: "ssl.conf" }  
+    - { srcname: "logs.conf.j2", destname: "logs.conf" }
+
+nginx_auth_headers:
+  - 'ngx.req.set_header("X-Auth-Audience", res.id_token.aud)'
+  - 'ngx.req.set_header("X-Auth-Email", res.id_token.email)'
+  - 'ngx.req.set_header("X-Auth-Name", res.id_token.name)'
+  - 'ngx.req.set_header("X-Auth-Username", res.id_token.preferred_username)'
+  - 'ngx.req.set_header("X-Auth-Locale", res.id_token.locale)'
+#  - 'ngx.req.set_header("X-Auth-ExpiresIn", res.id_token.exp)'
+#  - 'ngx.req.set_header("X-Auth-Groups", res.id_token.groups)'
+#  - 'ngx.req.set_header("X-Auth-Subject", res.id_token.sub)'
+#  - 'ngx.req.set_header("X-Auth-Userid", res.id_token.preferred_username)'
+#  - 'ngx.req.set_header("X-USER", res.id_token)'

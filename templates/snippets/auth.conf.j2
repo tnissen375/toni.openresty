@@ -1,0 +1,53 @@
+access_by_lua_block {
+        local function has_value (tab, val)
+           for index, value in ipairs(tab) do
+               if value == val then
+                 return true
+               end
+           end
+           return false
+        end
+      {% if auth_bypass is defined and auth_bypass|bool==true%}
+        local ips = { {{ auth_bypass_ips }} }
+        if not has_value(ips, ngx.var.REMOTE_ADDR) then
+      {% endif %}
+        local opts = {
+           redirect_uri = "/redirect_uri",
+           accept_none_alg = true,
+           discovery = "https://{{ auth_provider_domain }}/auth/realms/{{ keycloak_realm }}/.well-known/openid-configuration",
+           client_id = "{{ keycloak_client_name }}",
+           client_secret = "{{ keycloak_client_secret }}",
+           redirect_uri_scheme = "https",
+           logout_path = "/logout",
+           redirect_after_logout_uri = "https://{{ auth_provider_domain }}/auth/realms/{{ keycloak_realm }}/protocol/openid-connect/logout?redirect_uri={{ keycloak_redirect }}",
+           redirect_after_logout_with_id_token_hint = false,
+           renew_access_token_on_expiry = true,
+           access_token_expires_leeway = 60,
+           -- Storing the access token also includes the refresh token letting the server transparently renew the session
+           session_contents = {id_token=true, access_token=true}
+         }
+         -- call introspect for OAuth 2.0 Bearer Access Token validation
+         local res, err = require("resty.openidc").authenticate(opts)
+
+         -- if err or not res or not has_value(res.id_token.realm_access.roles, '{{ keycloak_access_group }}') or then
+         if err or not res or not has_value(res.id_token.resource_access.Nginx.roles, '{{ keycloak_access_group }}') then
+           --return ngx.redirect("/terms_of_use.html")         
+           ngx.exit(ngx.HTTP_FORBIDDEN)
+         end
+
+         ngx.req.set_header("X-Auth-Role", 'user')
+         if has_value(res.id_token.resource_access.Nginx.roles, '{{ keycloak_access_group }}_admin') then
+            ngx.req.set_header("X-Auth-Role", 'admin')
+         end
+
+  {% for reqheader in nginx_auth_headers %} 
+     {{ reqheader }}
+  {% endfor %}
+  {% if auth_bypass is defined and auth_bypass|bool==true%}
+      end
+  {% endif %}
+ 
+}
+# I disbled caching so the browser won't cache the site.
+# expires           0;
+# add_header        Cache-Control private;

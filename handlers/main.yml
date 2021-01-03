@@ -1,0 +1,21 @@
+---
+- name: restart nginx docker
+  when: nginx_run_as is defined and nginx_run_as=="docker"
+  docker_compose:
+    project_src: "{{ user_path }}/openresty"
+    restarted: yes
+
+- name: restart nginx service
+  when: nginx_run_as is defined and nginx_run_as=="service"
+  service:
+    name: nginx
+    state: restarted
+
+- name: restart nginx stack
+  when: nginx_run_as is defined and nginx_run_as=="stack"
+  docker_stack:
+    state: present
+    prune: yes
+    name: nginx
+    compose:
+      - "{{ user_path }}/openresty/docker-compose.yml"

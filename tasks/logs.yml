@@ -1,0 +1,50 @@
+---
+- debug:
+#    msg: "NGINX:{{ nginx_error_loglevel }} {{ nginx_access_loglevel }} {{ nginx_logfiles }}"
+    msg: "{{ nginx_run_as|default('docker') }}"
+
+- name: Disable nginx access logs
+  lineinfile:
+    regexp: '^\s*access_log'
+    line: 'access_log /dev/null;'
+    path: "{{ item.conffile }}"
+    create: yes
+  notify: "restart nginx {{ nginx_run_as|default('docker') }}"
+  when: nginx_logfiles is defined and nginx_logfiles|length > 0 and nginx_access_loglevel|string == 'off'
+  loop: 
+    "{{ nginx_logfiles }}"
+
+- name: Disable nginx error logs
+  lineinfile:
+    regexp: '^\s*error_log'
+    line: 'error_log /dev/null;'
+    insertafter: '^\s*access_log'
+    path: "{{ item.conffile }}"
+    create: yes
+  notify: "restart nginx {{ nginx_run_as|default('docker') }}"
+  when: nginx_logfiles is defined and nginx_logfiles|length > 0 and nginx_error_loglevel|string == 'off'
+  loop:
+    "{{ nginx_logfiles }}"
+
+- name: Enable nginx access logs
+  lineinfile:
+    regexp: '^\s*access_log'
+    line: "access_log {{ item.logdir }}/access.log {{ nginx_logformat }};"
+    path: "{{ item.conffile }}"
+    create: yes
+  when: nginx_logfiles is defined and nginx_logfiles|length > 0 and nginx_access_loglevel|string != 'off'
+  notify: "restart nginx {{ nginx_run_as|default('docker') }}"
+  loop:
+    "{{ nginx_logfiles }}"
+
+- name: Enable nginx error logs
+  lineinfile:
+    regexp: '^\s*error_log'
+    line: "error_log {{ item.logdir }}/error.log warn;"
+    insertafter: '^\s*access_log'
+    path: "{{ item.conffile }}"
+    create: yes
+  when: nginx_logfiles is defined and nginx_logfiles|length > 0 and nginx_error_loglevel|string !='off'
+  notify: "restart nginx {{ nginx_run_as|default('docker') }}"
+  loop:
+    "{{ nginx_logfiles }}"

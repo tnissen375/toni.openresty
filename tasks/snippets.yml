@@ -1,0 +1,17 @@
+---
+- file:
+    state: directory
+    path: "{{ nginx_conf_dir }}/snippets"
+    recurse: yes
+
+- name: Deploy nginx snippets
+  template:
+    src: "./snippets/{{ snippet_item.srcname }}"
+    dest: "{{ nginx_conf_dir }}/snippets/{{ snippet_item.destname }}"
+    owner: root
+    group: root
+    mode: "0600"    
+  loop:
+    "{{ nginx_snippets }}"
+  loop_control:
+    loop_var: snippet_item 

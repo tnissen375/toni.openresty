@@ -1,0 +1,17 @@
+---
+- name: Open TCP nginx ports for webserver
+  copy:
+    content: |
+      [nginx]
+      title=Web Server (HTTP,HTTPS)
+      description=Enable NGINX HTTP and HTTPS traffic
+      ports=80,443/tcp
+    mode: 0644
+    dest: /etc/ufw/applications.d/nginx
+
+- name: Allow nginx
+  when: configure_firewall|bool
+  ufw:
+    rule: allow
+    name: nginx
+    state: enabled

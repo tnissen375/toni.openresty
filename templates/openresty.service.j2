@@ -1,0 +1,26 @@
+[Unit]
+Description=Openresty service for bbb
+After=docker.service
+Requires=docker.service
+
+[Service]
+#Onyl needed if pulling images to disable timeouts
+#TimeoutStartSec=0
+Restart=always
+
+ExecStartPre=-/usr/bin/docker exec %n stop
+ExecStartPre=-/usr/bin/docker rm %n
+# Only with registry
+#ExecStartPre=/usr/bin/docker pull {{ image_openresty }}
+ExecStart=/usr/bin/docker run --rm --name %n --net host \
+{% for vol in nginx_docker_volumes %}
+    -v {{ vol }} \
+{% endfor %}
+{% if existing_certs is defined and existing_certs|bool==false %}
+    -v /var/www/letsencrypt:/var/www/letsencrypt \
+    -v /etc/letsencrypt:/etc/letsencrypt \{% endif %}
+    -v /etc/localtime:/etc/localtime:ro \
+    {{ image_openresty }}
+
+[Install]
+WantedBy=default.target
