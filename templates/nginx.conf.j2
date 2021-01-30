@@ -34,6 +34,7 @@ http {
     fastcgi_temp_path     /var/run/openresty/nginx-fastcgi;
     uwsgi_temp_path       /var/run/openresty/nginx-uwsgi;
     scgi_temp_path        /var/run/openresty/nginx-scgi;
+    client_max_body_size 200M;
 
     sendfile        on;
     #tcp_nopush     on;

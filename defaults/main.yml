@@ -2,9 +2,9 @@
 user: "root"
 user_path: "/root"
 nginx_run_as: "docker"
+nginx_docker_stack_condition: "on-failure"
 nginx_docker_stack_constraints:
   - "node.labels.manager == true"
-nginx_docker_stack_condition: "on-failure"
 configure_firewall: true
 enable_clear_dockerlogs: false
 nginx_conf_dir: "/etc/nginx"
@@ -40,6 +40,10 @@ nginx_docker_volumes:
   - "/etc/nginx/conf.d:/etc/nginx/conf.d"
   - "/etc/nginx/ssl:/etc/nginx/ssl"
   - "/etc/nginx/vhost.d:/etc/nginx/vhost.d"
+
+nginx_docker_ports:
+  - "80:80"
+  - "443:443"
 
 #/usr/local/openresty/nginx/logs is linked to stdout / stderr
 #nginx_logfiles:
