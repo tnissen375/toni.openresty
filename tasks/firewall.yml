@@ -9,9 +9,12 @@
     mode: 0644
     dest: /etc/ufw/applications.d/nginx
 
+## Dont like UFW anymore -> ignore_errors: yes ;)
+# ip6tables: Chain already exists happens quite often but not reproduceable // timing
 - name: Allow nginx
   when: configure_firewall|bool
   ufw:
     rule: allow
     name: nginx
     state: enabled
+  ignore_errors: yes

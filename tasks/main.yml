@@ -1,7 +1,7 @@
 ---
 - name: Include facts from imagebuilder
   import_role:
-    name: buildimages
+    name: toni.buildimages
     tasks_from: facts
 
 - file:
@@ -96,12 +96,31 @@
 - name: Copy snippets
   include_tasks: snippets.yml
 
+- name: remove resty free port 
+  when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version | int > 16 and (nginx_run_as is not defined or nginx_run_as=="docker" or nginx_run_as=="streamproxy")
+  docker_compose:
+    project_src: "{{ user_path }}/openresty"
+    state: absent
+
 - name: Launch docker-compose
-  when: nginx_run_as is not defined or nginx_run_as=="docker"
+  when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version | int > 16 and (nginx_run_as is not defined or nginx_run_as=="docker" or nginx_run_as=="streamproxy")
   docker_compose:
     project_src: "{{ user_path }}/openresty"
     restarted: yes
 
+# I m not able to install python in a way that docker-compose is installable by pip
+# So this is for only for compatibility with BBB Servers - until BBB 2.3 arrives
+- name: Remove node-exporter
+  shell: docker-compose 
+        -f {{ user_path }}/node-exporter/docker-compose.yml down
+  when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version | int < 18 and (nginx_run_as is not defined or nginx_run_as=="docker")
+
+- name: Launch node-exporter
+  shell: docker-compose 
+        -f {{ user_path }}/node-exporter/docker-compose.yml up -d
+  when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version | int < 18 and (nginx_run_as is not defined or nginx_run_as=="docker")
+
+# Useable only on Ubuntu 18 and above
 - name: Launch docker-stack
   when: nginx_run_as is defined and nginx_run_as=="stack"
   docker_stack:

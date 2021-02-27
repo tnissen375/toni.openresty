@@ -29,7 +29,7 @@ keycloak_client_name: "Nginx" # client name in keycloak
 keycloak_client_secret: "d3367b2d-85fb-46c0-9fcb-15e2dfeb4d9b" # dummy to be replaced: the secret which is used by openresty to authenticate against keyckloak
 keycloak_redirect: "https://lab.jidu.eu/" 
 auth_bypass: true # if set to true vhost authentication can be bypassed by specified ips
-auth_bypass_ips: ""
+#auth_bypass_ips: ""
 nginx_ssl_stream_config: false # Openresty will be used in stream mode - p.e. necessarry for turn server behind reverse proxy
 openresty_image: "openresty:1.19.3.1-alpine-fat"
 force_images: true #local image will removed and copied again to the ansible node - even if the tag does not change

@@ -6,3 +6,4 @@ nginx_access_loglevel: 'debug'
 nginx_error_loglevel: 'warn'
 openresty_image: "openresty:1.19.3.1-alpine-fat"
 keycloak_access_group: "bbb"
+disablenotify: false

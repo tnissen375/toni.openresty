@@ -1,18 +1,18 @@
 ---
 - name: restart nginx docker
-  when: nginx_run_as is defined and nginx_run_as=="docker"
+  when: nginx_run_as is defined and nginx_run_as=="docker" and disablenotify!=true
   docker_compose:
     project_src: "{{ user_path }}/openresty"
     restarted: yes
 
 - name: restart nginx service
-  when: nginx_run_as is defined and nginx_run_as=="service"
+  when: nginx_run_as is defined and nginx_run_as=="service" and disablenotify!=true
   service:
     name: nginx
     state: restarted
 
 - name: restart nginx stack
-  when: nginx_run_as is defined and nginx_run_as=="stack"
+  when: nginx_run_as is defined and nginx_run_as=="stack" and disablenotify!=true
   docker_stack:
     state: present
     prune: yes

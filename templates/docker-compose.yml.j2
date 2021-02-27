@@ -1,13 +1,13 @@
 ---
 version: "3"
-
 services:
   nginx-proxy:
     image: {{ image_openresty }}
 {% if docker_network_host is undefined %}
     ports:
-      - 80:80
-      - 443:443
+{% for port in nginx_docker_ports %}
+      - {{ port }}
+{% endfor %}    
 {% endif %}
     volumes:
 {% for vol in nginx_docker_volumes %}
@@ -20,7 +20,10 @@ services:
 {% endif %}
 {% if docker_network_host is undefined %}
     networks:
-      - {{ nginx_network_name }}
+      {{ nginx_network_name }}:
+{% if docker_network_ip is defined %}
+         ipv4_address: {{ docker_network_ip }}
+{% endif %}
 {% else %}
     network_mode: host
 {% endif %}

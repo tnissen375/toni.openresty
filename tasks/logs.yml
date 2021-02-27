@@ -1,7 +1,7 @@
 ---
-- debug:
+# - debug:
 #    msg: "NGINX:{{ nginx_error_loglevel }} {{ nginx_access_loglevel }} {{ nginx_logfiles }}"
-    msg: "{{ nginx_run_as|default('docker') }}"
+#     msg: "{{ nginx_run_as|default('docker') }}"
 
 - name: Disable nginx access logs
   lineinfile:
