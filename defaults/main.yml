@@ -19,7 +19,7 @@ auth_provider_domain: "key.{{ domain }}"
 keycloak_realm: "Intern"
 keycloak_client_name: "Nginx"
 keycloak_client_secret: "d8467b2d-85fb-46c0-9fcb-15e2dfeb4d9b"
-keycloak_redirect: "https://off.{{ domain }}/"
+keycloak_redirect: "https://ui.{{ domain }}/"
 auth_bypass: true
 auth_bypass_ips: ""
 nginx_ssl_stream_config: false
