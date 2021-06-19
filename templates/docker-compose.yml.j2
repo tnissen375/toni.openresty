@@ -39,6 +39,7 @@ services:
 {% else %}
     restart: unless-stopped
 {% endif %}
+    healthcheck: { test: ["CMD", "nginx", "-t"], timeout: 5s, interval: 30s }
 
 {% if docker_network_host is undefined %}
 networks:

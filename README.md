@@ -23,11 +23,11 @@ nginx_network_driver: "bridge" # overlay in swarm
 nginx_resolver: "127.0.0.11" 
 openresty_session_name: "__Secure-session_resty"
 openresty_session_secret: "623q4hR311t36VsC3Da3H7922IC0073T" # dummy to be replaced 
-auth_provider_domain: "key.toni-media.com" # where to reach keycloak provider
+auth_provider_domain: "key.{{ domain }}" # where to reach keycloak provider
 keycloak_realm: "Intern" # the realm which nginx is using in keycloak
 keycloak_client_name: "Nginx" # client name in keycloak
-keycloak_client_secret: "d3367b2d-85fb-46c0-9fcb-15e2dfeb4d9b" # dummy to be replaced: the secret which is used by openresty to authenticate against keyckloak
-keycloak_redirect: "https://lab.toni-media.com/" 
+keycloak_client_secret: "d3367b2d-85fb-46c0-9fcb-15e2dfeb4d9b" # dummy to be replaced: the secret which is used by openresty to authenticate against keycloak
+keycloak_redirect: "https://lab.{{ domain }}/" 
 auth_bypass: true # if set to true vhost authentication can be bypassed by specified ips
 #auth_bypass_ips: ""
 nginx_ssl_stream_config: false # Openresty will be used in stream mode - p.e. necessarry for turn server behind reverse proxy

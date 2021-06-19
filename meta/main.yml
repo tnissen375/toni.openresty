@@ -1,6 +1,6 @@
 galaxy_info:
   author: T.Nissen
-  description: Install Openresty as reverse proxy (9docker). Can be individually build. Different "tastes" ( as host service, docker-compose or docker stack)
+  description: Install Openresty as reverse proxy (docker). Can be individually build. Different "tastes" ( as host service, docker-compose or docker stack)
   company: N/A
 
   # If the issue tracker for your role is not on github, uncomment the
