@@ -1,13 +1,28 @@
 ---
+{% if nginx_swarm_real_ip is defined and nginx_swarm_real_ip==true %}
+version: "3.7"
+{% else %}
 version: "3"
+{% endif %}
 services:
   nginx-proxy:
     image: {{ image_openresty }}
 {% if docker_network_host is undefined %}
     ports:
+{% if nginx_swarm_real_ip is defined and nginx_swarm_real_ip==true %}
+      - target: 80
+        published: 80
+        protocol: tcp
+        mode: host
+      - target: 443
+        published: 443
+        protocol: tcp
+        mode: host
+{% else %}
 {% for port in nginx_docker_ports %}
       - {{ port }}
-{% endfor %}    
+{% endfor %}
+{% endif %}
 {% endif %}
     volumes:
 {% for vol in nginx_docker_volumes %}

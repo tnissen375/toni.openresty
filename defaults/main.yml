@@ -45,6 +45,13 @@ nginx_docker_ports:
   - "80:80"
   - "443:443"
 
+# todo: implement https://github.com/newsnowlabs/docker-ingress-routing-daemon
+# needs code check as well
+
+#https://stackoverflow.com/questions/39854682/log-clients-real-ip-address-in-docker-swarm-1-12-when-accessing-a-service
+# Warning does not scale, 1 lb service only:
+nginx_swarm_real_ip: false
+
 #/usr/local/openresty/nginx/logs is linked to stdout / stderr
 #nginx_logfiles:
 # - { conffile: "{{ nginx_conffile_dir }}/nginx.conf", logdir: "/usr/local/openresty/nginx/logs" }
