@@ -1,0 +1,8 @@
+rm:
+	docker stack rm {{ deploy_name }}
+
+deploy:
+	docker stack deploy -c docker-compose.yml {{ deploy_name }}
+
+ps:
+	docker stack ps {{ deploy_name }} --no-trunc

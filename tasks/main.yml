@@ -11,6 +11,11 @@
   loop:
     "{{ dir_exists }}"
 
+- name: Deploy Make
+  template:
+    src: "Makefile.j2"
+    dest: "{{ user_path }}/{{ deploy_name }}/Makefile"
+
 # It does not make much sense to do this on every host, dhparam can be reused!
 # https://security.stackexchange.com/questions/70831/does-dh-parameter-file-need-to-be-unique-per-private-key
 - name: Register dhparam file
@@ -120,7 +125,16 @@
         -f {{ user_path }}/node-exporter/docker-compose.yml up -d
   when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version | int < 18 and (nginx_run_as is not defined or nginx_run_as=="docker")
 
+
 # Useable only on Ubuntu 18 and above
+- name: stop nginx stack
+  when: nginx_run_as is defined and nginx_run_as=="stack"
+  docker_stack:
+    state: absent
+    name: nginx
+    compose:
+      - "{{ user_path }}/openresty/docker-compose.yml"
+
 - name: Launch docker-stack
   when: nginx_run_as is defined and nginx_run_as=="stack"
   docker_stack:
