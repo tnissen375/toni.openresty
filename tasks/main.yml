@@ -89,7 +89,7 @@
   when: nginx_run_as is not defined or not nginx_run_as=="service" 
   template:
     src: docker-compose.yml.j2
-    dest: "{{ user_path }}/openresty/docker-compose.yml"
+    dest: "{{ user_path }}/{{ deploy_name }}/docker-compose.yml"
 
 - name: Configure firewall
   when: configure_firewall|bool
@@ -104,13 +104,13 @@
 - name: remove resty free port 
   when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version | int > 16 and (nginx_run_as is not defined or nginx_run_as=="docker" or nginx_run_as=="streamproxy")
   docker_compose:
-    project_src: "{{ user_path }}/openresty"
+    project_src: "{{ user_path }}/{{ deploy_name }}"
     state: absent
 
 - name: Launch docker-compose
   when: ansible_distribution == 'Ubuntu' and ansible_distribution_major_version | int > 16 and (nginx_run_as is not defined or nginx_run_as=="docker" or nginx_run_as=="streamproxy")
   docker_compose:
-    project_src: "{{ user_path }}/openresty"
+    project_src: "{{ user_path }}/{{ deploy_name }}"
     restarted: yes
 
 # I m not able to install python in a way that docker-compose is installable by pip
@@ -133,7 +133,7 @@
     state: absent
     name: nginx
     compose:
-      - "{{ user_path }}/openresty/docker-compose.yml"
+      - "{{ user_path }}/{{ deploy_name }}/docker-compose.yml"
 
 - name: Launch docker-stack
   when: nginx_run_as is defined and nginx_run_as=="stack"
@@ -141,7 +141,7 @@
     state: present
     name: nginx
     compose:
-      - "{{ user_path }}/openresty/docker-compose.yml"
+      - "{{ user_path }}/{{ deploy_name }}/docker-compose.yml"
 
 - name: Set certificates deployment paths as fact.
   set_fact:

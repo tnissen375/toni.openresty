@@ -2,7 +2,7 @@
 user: "root"
 user_path: "/root"
 nginx_run_as: "docker"
-deploy_name: nginx # only used in makefile, so dont change
+deploy_name: "openresty"
 nginx_docker_stack_condition: "on-failure"
 nginx_docker_stack_constraints:
   - "node.labels.manager == true"
@@ -30,7 +30,7 @@ dir_exists:
   - "{{ nginx_conf_dir }}/vhost.d"
   - "{{ nginx_conf_dir }}/conf.d"
   - "{{ nginx_conf_dir }}/snippets"
-  - "{{ user_path }}/openresty"
+  - "{{ user_path }}/{{ deploy_name }}"
   - "/var/www/letsencrypt"
   - "/etc/letsencrypt/live"
 

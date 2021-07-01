@@ -2,7 +2,7 @@
 - name: restart nginx docker
   when: nginx_run_as is defined and nginx_run_as=="docker" and disablenotify!=true
   docker_compose:
-    project_src: "{{ user_path }}/openresty"
+    project_src: "{{ user_path }}/{{ deploy_name }}"
     restarted: yes
 
 - name: restart nginx service
@@ -18,4 +18,4 @@
     prune: yes
     name: nginx
     compose:
-      - "{{ user_path }}/openresty/docker-compose.yml"
+      - "{{ user_path }}/{{ deploy_name }}/docker-compose.yml"
