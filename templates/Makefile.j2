@@ -1,3 +1,8 @@
+NGINX := $$(docker ps -a | grep "Up" | awk '{print $$NF}' | grep -w "{{ nginx_stack }}_nginx-proxy\.*")
+
+reload:
+	docker exec -i $(NGINX) nginx -s reload
+
 rm:
 	docker stack rm {{ deploy_name }}
 
@@ -6,3 +11,11 @@ deploy:
 
 ps:
 	docker stack ps {{ deploy_name }} --no-trunc
+
+log:
+	docker service logs -f $(NGINX)
+
+exec:
+	docker exec -it $(NGINX) /bin/bash
+
+	
