@@ -13,7 +13,6 @@ access_by_lua_block {
       {% endif %}
         local opts = {
            redirect_uri = "/redirect_uri",
-           accept_none_alg = true,
            discovery = "https://{{ auth_provider_domain }}/auth/realms/{{ keycloak_realm }}/.well-known/openid-configuration",
            client_id = "{{ keycloak_client_name }}",
            client_secret = "{{ keycloak_client_secret }}",
@@ -23,6 +22,8 @@ access_by_lua_block {
            redirect_after_logout_with_id_token_hint = false,
            renew_access_token_on_expiry = true,
            access_token_expires_leeway = 60,
+           accept_none_alg = false,
+           accept_unsupported_alg = false,
            -- Storing the access token also includes the refresh token letting the server transparently renew the session
            session_contents = {id_token=true, access_token=true}
          }

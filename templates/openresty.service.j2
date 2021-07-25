@@ -11,7 +11,7 @@ Restart=always
 ExecStartPre=-/usr/bin/docker exec %n stop
 ExecStartPre=-/usr/bin/docker rm %n
 # Only with registry
-#ExecStartPre=/usr/bin/docker pull {{ image_openresty }}
+#ExecStartPre=/usr/bin/docker pull {{ openresty_image | replace('_','/') }}
 ExecStart=/usr/bin/docker run --rm --name %n --net host \
 {% for vol in nginx_docker_volumes %}
     -v {{ vol }} \
@@ -20,7 +20,7 @@ ExecStart=/usr/bin/docker run --rm --name %n --net host \
     -v /var/www/letsencrypt:/var/www/letsencrypt \
     -v /etc/letsencrypt:/etc/letsencrypt \{% endif %}
     -v /etc/localtime:/etc/localtime:ro \
-    {{ image_openresty }}
+    {{ openresty_image | replace('_','/') }}
 
 [Install]
 WantedBy=default.target

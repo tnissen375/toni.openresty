@@ -3,14 +3,17 @@ user: "root"
 user_path: "/root"
 nginx_run_as: "docker"
 deploy_name: "openresty"
+disablenotify: true
 nginx_docker_stack_condition: "on-failure"
 nginx_docker_stack_constraints:
   - "node.labels.manager == true"
+openresty_image: "registry.toni-media.com_openresty:1.19.3.1-alpine-fat"
 configure_firewall: true
 enable_clear_dockerlogs: false
 nginx_conf_dir: "/etc/nginx"
 nginx_network_name: "nginx_net"
 nginx_network_driver: "bridge"
+nginx_enable_ipv6: true
 #Google DNS: 8.8.8.8 8.8.4.4
 #Hetzner DNS: 213.133.98.98 213.133.100.100 213.133.99.99
 nginx_resolver: "127.0.0.11"
@@ -25,12 +28,16 @@ auth_bypass: true
 auth_bypass_ips: ""
 nginx_ssl_stream_config: false
 
+session_store: "shm" #redis
+session_store_redis_password: ""
+session_store_redis_server_name: "dev.toni-media.com"
+
 dir_exists:
   - "{{ nginx_conf_dir }}/ssl"
   - "{{ nginx_conf_dir }}/vhost.d"
   - "{{ nginx_conf_dir }}/conf.d"
   - "{{ nginx_conf_dir }}/snippets"
-  - "{{ user_path }}/{{ deploy_name }}"
+  - "{{ user_path }}/{{ deploy_name }}/redis"
   - "/var/www/letsencrypt"
   - "/etc/letsencrypt/live"
 
@@ -45,6 +52,9 @@ nginx_docker_volumes:
 nginx_docker_ports:
   - "80:80"
   - "443:443"
+
+include_image_files:
+    image: "{{ openresty_image }}"
 
 # todo: implement https://github.com/newsnowlabs/docker-ingress-routing-daemon
 # needs code check as well

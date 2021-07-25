@@ -21,14 +21,47 @@ ssl_stapling_verify on;
 add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
 
 # This has to be set on every server block - all severs are using SSL by default, so its placed here. Nothing sepcial to SSL.
+{% if session_store is defined and session_store=="shm" %}
 set $session_storage shm;
 set $session_shm_store         sessions;  
+set $session_shm_uselocking    off;
+{% endif %}
+
+{% if session_store is defined and session_store=="redis" %}
+set $session_strategy regenerate;
+set $session_storage redis;
+set $session_redis_prefix                   sessions;
+set $session_redis_database                 0;
+set $session_redis_connect_timeout          1000; # (in milliseconds)
+set $session_redis_send_timeout             1000; # (in milliseconds)
+set $session_redis_read_timeout             1000; # (in milliseconds)
+#set $session_redis_socket                   unix:///var/run/redis/redis.sock;
+set $session_redis_host                     redis;
+set $session_redis_port                     6379;
+set $session_redis_ssl                      off;
+set $session_redis_ssl_verify               off;
+set $session_redis_server_name              {{ session_store_redis_server_name }} # for TLS SNI
+{% if session_store_redis_password is defined and session_store_redis_password!="" %}
+set $session_redis_auth                     {{ session_store_redis_password }};
+{% endif %}
+set $session_redis_uselocking               off;
+set $session_redis_spinlockwait             150;  # (in milliseconds)
+set $session_redis_maxlockwait              30;   # (in seconds)
+set $session_redis_pool_name                sessions;
+set $session_redis_pool_timeout             1000; # (in milliseconds)
+set $session_redis_pool_size                10;
+set $session_redis_pool_backlog             10;
+#set $session_redis_cluster_name             redis-cluster;
+#set $session_redis_cluster_dict             sessions;
+#set $session_redis_cluster_maxredirections  5;
+#set $session_redis_cluster_nodes            '127.0.0.1:30001 127.0.0.1:30002 127.0.0.1:30003 127.0.0.1:30004 127.0.0.1:30005 127.0.0.1:30006';
+{% endif %}
+
 set $session_cookie_persistent on;   
 set $session_cookie_renew      3600;      # new cookie every hour
 set $session_cookie_lifetime   86400;     # lifetime for persistent cookies
 set $session_name              {{ openresty_session_name }}; 
-set $session_shm_uselocking    off;
-
 set $session_cookie_domain {{ domain }};
 set $session_secret {{ openresty_session_secret }};
+#set $session_cookie_samesite off;
 {% endif %}

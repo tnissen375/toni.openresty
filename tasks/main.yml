@@ -51,25 +51,12 @@
     path: "{{ user_path }}/{{ image_file_openresty }}"
   register: image_file
 
-- name: remove images
-  when: force_images|default(false)
-  docker_image:
-    name: "{{ image_openresty }}"
-    force_absent: yes
-    state: absent    
-
-- name: copy tarball to host
-  when: not image_file.stat.exists or force_images|default(false)
-  copy:
-    src: "/{{ user }}/{{ image_file_openresty }}"
-    dest: "{{ user_path }}/{{ image_file_openresty }}"
-
-- name: load container from tarball
-  docker_image:
-    name: "{{ image_openresty }}"
-    load_path: "{{ user_path }}/{{ image_file_openresty }}"
-    state: present
-    source: load
+- name: Include local docker images
+  include_role:
+    name: toni.buildimages
+    tasks_from: load_image
+  loop:
+    - "{{ include_image_files }}"
 
 - name: Deploy nginx conf
   template:
@@ -131,7 +118,7 @@
   when: nginx_run_as is defined and nginx_run_as=="stack"
   docker_stack:
     state: absent
-    name: nginx
+    name: "{{ deploy_name }}"
     compose:
       - "{{ user_path }}/{{ deploy_name }}/docker-compose.yml"
 
@@ -139,7 +126,7 @@
   when: nginx_run_as is defined and nginx_run_as=="stack"
   docker_stack:
     state: present
-    name: nginx
+    name: "{{ deploy_name }}"
     compose:
       - "{{ user_path }}/{{ deploy_name }}/docker-compose.yml"
 

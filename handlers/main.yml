@@ -8,7 +8,7 @@
 - name: restart nginx service
   when: nginx_run_as is defined and nginx_run_as=="service" and disablenotify!=true
   service:
-    name: nginx
+    name: "{{ deploy_name }}"
     state: restarted
 
 - name: restart nginx stack
@@ -16,6 +16,6 @@
   docker_stack:
     state: present
     prune: yes
-    name: nginx
+    name: "{{ deploy_name }}"
     compose:
       - "{{ user_path }}/{{ deploy_name }}/docker-compose.yml"

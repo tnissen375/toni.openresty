@@ -6,8 +6,9 @@ version: "3"
 {% endif %}
 services:
   nginx-proxy:
-    image: {{ image_openresty }}
+    image: {{ openresty_image | replace('_','/') }}
 {% if docker_network_host is undefined %}
+    # this is the also the only way with ipv6 enabled bridge in swarm mode - does not scale :/
     ports:
 {% if nginx_swarm_real_ip is defined and nginx_swarm_real_ip==true %}
       - target: 80
@@ -35,6 +36,9 @@ services:
 {% endif %}
 {% if docker_network_host is undefined %}
     networks:
+{% if nginx_enable_ipv6 is defined and nginx_enable_ipv6|bool==true %}      
+      bridge:
+{% endif %}    
       {{ nginx_network_name }}:
 {% if docker_network_ip is defined %}
          ipv4_address: {{ docker_network_ip }}
@@ -54,10 +58,40 @@ services:
 {% else %}
     restart: unless-stopped
 {% endif %}
-    healthcheck: { test: ["CMD", "nginx", "-t"], timeout: 5s, interval: 30s }
+    healthcheck: { test: ["CMD", "nginx", "-t"], timeout: 5s, interval: 10s }
+
+{% if session_store is defined and session_store=="redis" %}
+  redis:
+    image: redis:6.0-alpine
+    volumes:
+      - "{{ user_path }}/{{ deploy_name }}/redis:/data"
+    networks:
+      - {{ nginx_network_name }}
+{% if nginx_run_as is defined and nginx_run_as=="stack" %}
+    deploy:
+      placement:
+        constraints:
+{% for constraints in nginx_docker_stack_constraints %}
+          - {{ constraints }}
+{% endfor %}
+      restart_policy:
+        condition: {{ nginx_docker_stack_condition }}
+{% else %}
+    restart: unless-stopped
+{% endif %}
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+{% endif %}
 
 {% if docker_network_host is undefined %}
 networks:
   {{ nginx_network_name }}:
+    external: true
+{% endif %}
+{% if nginx_enable_ipv6 is defined and nginx_enable_ipv6|bool==true %}
+  bridge:
     external: true
 {% endif %}
