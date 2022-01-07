@@ -61,7 +61,8 @@ set $session_cookie_persistent on;
 set $session_cookie_renew      3600;      # new cookie every hour
 set $session_cookie_lifetime   86400;     # lifetime for persistent cookies
 set $session_name              {{ openresty_session_name }}; 
-set $session_cookie_domain .{{ domain }};
+set $session_cookie_domain {{ domain }};
+#set $session_cookie_domain .{{ domain }};
 set $session_secret {{ openresty_session_secret }};
 #set $session_cookie_samesite off;
 {% endif %}

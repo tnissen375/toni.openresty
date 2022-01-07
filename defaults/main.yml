@@ -3,7 +3,6 @@ user: "root"
 user_path: "/root"
 nginx_run_as: "docker"
 deploy_name: "openresty"
-nginx_stack: "{{ deploy_name }}"
 disablenotify: true
 nginx_docker_stack_condition: "on-failure"
 nginx_docker_stack_constraints:
