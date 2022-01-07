@@ -3,13 +3,14 @@ user: "root"
 user_path: "/root"
 nginx_run_as: "docker"
 deploy_name: "openresty"
+nginx_stack: "{{ deploy_name }}"
 disablenotify: true
 nginx_docker_stack_condition: "on-failure"
 nginx_docker_stack_constraints:
   - "node.labels.manager == true"
 openresty_image: "registry.toni-media.com_openresty:1.19.9.1-alpine-fat"
 configure_firewall: true
-enable_clear_dockerlogs: false
+enable_clear_dockerlogs: true
 nginx_conf_dir: "/etc/nginx"
 nginx_network_name: "nginx_net"
 nginx_network_driver: "bridge"
