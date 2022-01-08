@@ -1,5 +1,6 @@
 ---
 - name: Include facts from imagebuilder
+  when: dockerhub_image is defined | default(true)
   import_role:
     name: toni.buildimages
     tasks_from: facts
