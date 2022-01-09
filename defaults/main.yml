@@ -7,14 +7,14 @@ disablenotify: true
 nginx_docker_stack_condition: "on-failure"
 nginx_docker_stack_constraints:
   - "node.labels.manager == true"
-dockerhub_image: true # otherwise the imagename is taken from buildimage facts
+dockerhub_image: false # otherwise the imagename is taken from buildimage facts
 openresty_image: "truespirit/openresty:1.19.9.1-alpine-fat"
 configure_firewall: true
 enable_clear_dockerlogs: true
 nginx_conf_dir: "/etc/nginx"
 nginx_network_name: "nginx_net"
 nginx_network_driver: "bridge"
-nginx_enable_ipv6: true
+nginx_enable_ipv6: false
 #Google DNS: 8.8.8.8 8.8.4.4
 #Hetzner DNS: 213.133.98.98 213.133.100.100 213.133.99.99
 nginx_resolver: "127.0.0.11"

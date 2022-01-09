@@ -1,6 +1,7 @@
 ---
 - name: Include facts from imagebuilder
-  when: dockerhub_image is defined | default(true)
+  when: dockerhub_image is defined and dockerhub_image==false | default(false)
+  #delegate_to: localhost
   import_role:
     name: toni.buildimages
     tasks_from: facts
@@ -48,11 +49,13 @@
   include_tasks: service.yml
     
 - name: Register image file
+  when: dockerhub_image is defined and dockerhub_image==false | default(false)
   stat:
     path: "{{ user_path }}/{{ image_file_openresty }}"
   register: image_file
 
 - name: Include local docker images
+  when: dockerhub_image is defined and dockerhub_image==false | default(false)
   include_role:
     name: toni.buildimages
     tasks_from: load_image
