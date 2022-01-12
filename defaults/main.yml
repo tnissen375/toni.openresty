@@ -62,7 +62,7 @@ include_image_files:
 
 #https://stackoverflow.com/questions/39854682/log-clients-real-ip-address-in-docker-swarm-1-12-when-accessing-a-service
 # Warning does not scale, 1 lb service only:
-nginx_swarm_real_ip: false
+nginx_swarm_real_ip: true
 
 #/usr/local/openresty/nginx/logs is linked to stdout / stderr
 #nginx_logfiles:
