@@ -40,7 +40,7 @@
 - name: Enable nginx error logs
   lineinfile:
     regexp: '^\s*error_log'
-    line: "error_log {{ item.logdir }}/error.log warn;"
+    line: "error_log {{ item.logdir }}/error.log {{ nginx_error_loglevel }};"
     insertafter: '^\s*access_log'
     path: "{{ item.conffile }}"
     create: yes
