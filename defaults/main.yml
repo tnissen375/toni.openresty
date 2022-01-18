@@ -20,6 +20,7 @@ nginx_enable_ipv6: false
 nginx_resolver: "127.0.0.11"
 openresty_session_name: "__Secure-session_resty"
 openresty_session_secret: "623q4hR325t36VsC3Da3H7922IC0073T"
+openresty_secret: ""
 auth_provider_domain: "key.{{ domain }}"
 keycloak_realm: "Intern"
 keycloak_client_name: "Nginx"
