@@ -40,14 +40,10 @@ access_by_lua_block {
             ngx.req.set_header("X-Auth-Role", 'admin')
          end
 
-  ngx.req.set_header("X-Auth-Proxy-Secret", "{{ openresty_secret }}")
-
   {% for reqheader in nginx_auth_headers %} 
      {{ reqheader }}
   {% endfor %}
-  
       end
-  
 }
 # I disbled caching so the browser won't cache the site.
 # expires           0;

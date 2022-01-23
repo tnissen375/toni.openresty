@@ -43,7 +43,7 @@ dir_exists:
   - "/var/www/letsencrypt"
   - "/etc/letsencrypt/live"
 
-nginx_logformat: "{% if nginx_access_loglevel == 'production' %}'anonymized'{% else %}'main'{% endif %}"
+nginx_logformat: "'main'"
 nginx_docker_volumes:
   - "/etc/nginx/nginx.conf:/etc/nginx/nginx.conf"
   - "/etc/nginx/snippets:/etc/nginx/snippets"

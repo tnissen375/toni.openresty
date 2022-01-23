@@ -26,6 +26,49 @@
   loop:
     "{{ nginx_logfiles }}"
 
+- name: nginx global access conf
+  lineinfile:
+    regexp: '^\s*access_log'
+    path: "{{ item.conffile }}"
+    state: absent
+  notify: "restart nginx {{ nginx_run_as|default('docker') }}"
+  when: nginx_logfiles is defined and nginx_logfiles|length > 0 and nginx_access_loglevel|string == 'global'
+  loop: 
+    "{{ nginx_logfiles }}"
+
+- name: nginx global error conf
+  lineinfile:
+    regexp: '^\s*error_log'
+    path: "{{ item.conffile }}"
+    state: absent
+  notify: "restart nginx {{ nginx_run_as|default('docker') }}"
+  when: nginx_logfiles is defined and nginx_logfiles|length > 0 and nginx_error_loglevel|string == 'global'
+  loop:
+    "{{ nginx_logfiles }}"
+
+- name: Enable nginx access logs > docker
+  lineinfile:
+    regexp: '^\s*access_log'
+    line: "access_log /dev/stdout {{ nginx_logformat | default('main')}};"
+    path: "{{ item.conffile }}"
+    create: yes
+  when: nginx_logfiles is defined and nginx_logfiles|length > 0 and nginx_access_loglevel|string == 'docker'
+  notify: "restart nginx {{ nginx_run_as|default('docker') }}"
+  loop:
+    "{{ nginx_logfiles }}"
+
+- name: Enable nginx error logs > docker
+  lineinfile:
+    regexp: '^\s*error_log'
+    line: "error_log /dev/stderr {{ nginx_error_loglevel | default('warn') }};"
+    insertafter: '^\s*access_log'
+    path: "{{ item.conffile }}"
+    create: yes
+  when: nginx_logfiles is defined and nginx_logfiles|length > 0 and nginx_error_loglevel|string =='docker'
+  notify: "restart nginx {{ nginx_run_as|default('docker') }}"
+  loop:
+    "{{ nginx_logfiles }}"
+
 - name: Enable nginx access logs
   lineinfile:
     regexp: '^\s*access_log'
