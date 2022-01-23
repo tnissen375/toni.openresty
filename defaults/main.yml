@@ -4,6 +4,7 @@ user_path: "/root"
 nginx_run_as: "docker"
 deploy_name: "openresty"
 disablenotify: true
+disableCache: false
 nginx_docker_stack_condition: "on-failure"
 nginx_docker_stack_constraints:
   - "node.labels.manager == true"

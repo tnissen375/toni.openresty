@@ -1,0 +1,9 @@
+---
+# - debug:
+#    msg: "NGINX:{{ nginx_error_loglevel }} {{ nginx_access_loglevel }} {{ nginx_logfiles }}"
+#     msg: "{{ nginx_run_as|default('docker') }}"
+
+- name: Deploy vhost
+  template:
+    src: nginx_server.conf.j2
+    dest: "{{ nginx_conf_dir }}/conf.d/{{ nginx_subdomain }}{{ nginx_domain }}.conf"
