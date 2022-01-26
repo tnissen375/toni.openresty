@@ -1,4 +1,9 @@
+TAIL=20
+d=$$(date +%Y%m%d_%H:%M:%S)
+
 NGINX := $$(docker ps -a | grep "Up" | awk '{print $$NF}' | grep -w "{{ nginx_stack }}_nginx-proxy\.*")
+
+completebackup: bckup bckupcerts purge
 
 reload:
 	docker exec -i $(NGINX) nginx -s reload
@@ -18,4 +23,14 @@ log:
 exec:
 	docker exec -it $(NGINX) /bin/bash
 
-	
+bckup:
+	sh -c 'exec tar -cv {{ nginx_conf_dir }}' | gzip > {{ user_path }}/{{ deploy_name }}/backup/openresty_"$d".tar.gz
+
+bckupcerts:
+	sh -c 'exec tar -cv /var/www/letsencrypt' | gzip > {{ user_path }}/{{ deploy_name }}/backup/certs_"$d".tar.gz
+
+restore:
+	tar -xzf $(file) -C $(target)	
+
+purge:
+	find {{ user_path }}/{{ deploy_name }}/backup/openresty_*.gz  -mtime +10 -delete &> /dev/null && find {{ user_path }}/{{ deploy_name }}/backup/certs_*.gz  -mtime +10 -delete &> /dev/null

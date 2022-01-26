@@ -149,3 +149,12 @@
     user: root
     job: "truncate -s 0 /var/lib/docker/containers/*/*-json.log"
   #    job: truncate -s 0 $(docker inspect --format='{{.LogPath}}' greenlight)
+
+- name: create backup daily backup by cron file under /etc/cron.d
+  when: enable_backup | bool==true
+  cron:
+    name: Create {{ deploy_name }} backup
+    minute: "0"
+    hour: "4"
+    user: root
+    job: "make -C {{ user_path }}/{{ deploy_name }} completebackup"
