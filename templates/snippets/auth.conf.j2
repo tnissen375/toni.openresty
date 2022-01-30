@@ -1,4 +1,14 @@
 access_by_lua_block {
+        local ipmatcher = require("resty.ipmatcher")
+        local ip = ipmatcher.new({
+            "127.0.0.1",
+            "192.168.0.0/16",
+            "10.0.0.0/8",
+            "172.16.0.0/12",
+            "::1",
+            "fe80::/32",
+        })
+
         local function has_value (tab, val)
            for index, value in ipairs(tab) do
                if value == val then
@@ -9,7 +19,7 @@ access_by_lua_block {
         end
 
         local ips = { {{ auth_bypass_ips }} }
-        if not has_value(ips, ngx.var.REMOTE_ADDR) then
+        if not ip:match(ngx.var.REMOTE_ADDR) and not has_value(ips, ngx.var.REMOTE_ADDR) then
         local opts = {
            redirect_uri = "/redirect_uri",
            discovery = "https://{{ auth_provider_domain }}/auth/realms/{{ keycloak_realm }}/.well-known/openid-configuration",
