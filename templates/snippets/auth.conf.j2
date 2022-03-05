@@ -1,3 +1,4 @@
+set $session_cookie_domain     {{ nginx_domain }};
 access_by_lua_block {
         local ipmatcher = require("resty.ipmatcher")
         local ip = ipmatcher.new({
