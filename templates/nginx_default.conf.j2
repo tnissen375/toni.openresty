@@ -73,6 +73,7 @@ proxy_buffering off;
 # Mitigate httpoxy attack
 proxy_set_header Proxy "";
 
+{% if nginx_run_as != "streamproxy" %}
 server {
         server_name _; # This is just an invalid value which will never trigger on a real hostname.
         listen 80 default_server;
@@ -90,3 +91,4 @@ server {
         ssl_certificate /etc/ssl/dummy-ssl-fallback.crt; 
         ssl_certificate_key /etc/ssl/dummy-ssl-fallback.key;
 }
+{% endif %}

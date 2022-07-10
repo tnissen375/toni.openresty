@@ -14,13 +14,15 @@ ExecStartPre=-/usr/bin/docker rm %n
 #ExecStartPre=/usr/bin/docker pull {{ openresty_image | replace('_','/') }}
 ExecStart=/usr/bin/docker run --rm --name %n --net host \
 {% for vol in nginx_docker_volumes %}
-    -v {{ vol }} \
+-v {{ vol }} \
 {% endfor %}
 {% if existing_certs is defined and existing_certs|bool==false %}
-    -v /var/www/letsencrypt:/var/www/letsencrypt \
-    -v /etc/letsencrypt:/etc/letsencrypt \{% endif %}
-    -v /etc/localtime:/etc/localtime:ro \
-    {{ openresty_image | replace('_','/') }}
+-v /var/www/letsencrypt:/var/www/letsencrypt \
+-v /etc/letsencrypt:/etc/letsencrypt \
+-v /root/.acme.sh/:/root/.acme.sh \
+{% endif %}
+-v /etc/localtime:/etc/localtime:ro {{ openresty_image | replace('_','/') }}
 
+ExecReload=/usr/bin/docker exec -t %n nginx -s reload
 [Install]
 WantedBy=default.target

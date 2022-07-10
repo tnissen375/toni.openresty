@@ -3,7 +3,7 @@
 - name: copy openresty service file
   template:
     src: openresty.service.j2
-    dest: /lib/systemd/system/nginx.service
+    dest: "/lib/systemd/system/{{ nginx_stack }}.service"
 
 - name: force systemd to reread configs
   systemd:
@@ -11,5 +11,5 @@
 
 - name: Enable openresty service
   service:
-    name: nginx
+    name: "{{ nginx_stack }}"
     enabled: yes

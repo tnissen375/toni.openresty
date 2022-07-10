@@ -1,0 +1,91 @@
+---
+- name: set hostname
+  include_role:
+    name: toni.base
+    tasks_from: host
+  vars:
+    deploy_hostname: "{{ cert_domain }}"
+
+# - name: Display images variable
+#   debug:
+#     var: inventory_hostname
+
+- name: Register conf file
+  stat:
+    path: "{{ nginx_conf_dir }}/conf.d/{{ cert_vhost }}"
+  register: nginx_conf_file  
+
+- name: Deploy cert vhost
+  when: not nginx_conf_file.stat.exists
+  template:
+    src: nginx_certbot.conf.j2
+    dest: "{{ nginx_conf_dir }}/conf.d/{{ cert_vhost }}"
+
+- name: restart nginx stack
+  when: nginx_run_as is defined and nginx_run_as=="stack"
+  docker_stack:
+    state: absent
+    name: "{{ nginx_stack }}"
+    compose:
+      - "{{ user_path }}/{{ nginx_stack }}/docker-compose.yml" 
+
+- name: restart nginx stack
+  when: nginx_run_as is defined and nginx_run_as=="stack" and nginx_stack_keep_alive|bool == false
+  docker_stack:
+    state: present
+    prune: yes
+    name: "{{ nginx_stack }}"
+    compose:
+      - "{{ user_path }}/{{ nginx_stack }}/docker-compose.yml" 
+
+- name: Launch docker-compose
+  when: nginx_run_as is not defined or nginx_run_as is not defined or nginx_run_as=="docker" or nginx_run_as=="streamproxy"
+  docker_compose:
+    project_src: "{{ user_path }}/{{ nginx_stack }}"
+    restarted: yes
+
+- name: restart nginx service
+  when: nginx_run_as is defined and nginx_run_as=="service"
+  service:
+    name: "{{ nginx_stack }}"
+    state: restarted
+
+- name: reload nginx stack
+  command: make reload
+  args:
+    chdir: "{{ user_path }}/{{ nginx_stack }}"
+  register: result_reload
+  when: nginx_stack_keep_alive|bool == true
+
+- name: set cert facts 
+  include_role:
+    name: toni.certificates
+    tasks_from: certbot_facts
+  vars:
+    certbot_server: "{{ cert_domain }}"
+    record_dns_create: false
+    record_dns_update: false
+    dns_create: false
+
+- name: Delete cert vhost
+  when: not nginx_conf_file.stat.exists
+  file:
+    name: "{{ nginx_conf_dir }}/conf.d/{{ cert_vhost }}"
+    state: absent
+
+
+# - name: Base
+#   hosts: bigbluebutton
+#   #strategy: free
+#   remote_user: root
+#   gather_facts: yes
+#   tasks:
+#   - name: Create cert
+#     include_role: { name: toni.openresty, tasks_from: cert }
+#   vars:
+#     nginx_run_as: 'service'
+#     nginx_stack: "nginx"
+#     cert_domain: "{{ inventory_hostname }}"
+#     cert_vhost: "{{ cert_domain }}.conf"
+#     configure_ipv4_stack_hostname: false
+#     existing_certs: false    

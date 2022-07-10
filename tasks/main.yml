@@ -30,7 +30,7 @@
     src: "{{ role_path }}/templates/dhp-4096.pem"
     dest: "{{ nginx_conf_dir }}/ssl/dhp-4096.pem"
 
-- name: Remove nginx on host // error is ok
+- name: Stop nginx on host // error is ok
   service:
     name: nginx
     state: stopped
@@ -40,6 +40,12 @@
   failed_when:
     - result.changed == false
     - '"requested service" not in result.msg'  
+
+- name: Remove nginx from host // error is ok
+  apt:
+    name:
+      "nginx"
+    state: absent
 
 # - debug:
 #     var: result
