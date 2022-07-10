@@ -6,6 +6,8 @@ deploy_name: "openresty"
 disablenotify: true
 disableCache: false
 enable_backup: true
+header_access_token: false
+header_access_token_decoded: false
 nginx_docker_stack_condition: "on-failure"
 nginx_docker_stack_constraints:
   - "node.labels.manager == true"
@@ -82,8 +84,8 @@ nginx_auth_headers:
   - 'ngx.req.set_header("X-Auth-Name", res.id_token.name)'
   - 'ngx.req.set_header("X-Auth-Username", res.id_token.preferred_username)'
   - 'ngx.req.set_header("X-Auth-Locale", res.id_token.locale)'
+  - 'ngx.req.set_header("X-Auth-Groups", res.id_token.groups)'  
 #  - 'ngx.req.set_header("X-Auth-ExpiresIn", res.id_token.exp)'
-#  - 'ngx.req.set_header("X-Auth-Groups", res.id_token.groups)'
 #  - 'ngx.req.set_header("X-Auth-Subject", res.id_token.sub)'
 #  - 'ngx.req.set_header("X-Auth-Userid", res.id_token.preferred_username)'
 #  - 'ngx.req.set_header("X-USER", res.id_token)'

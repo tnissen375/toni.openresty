@@ -19,16 +19,20 @@ access_by_lua_block {
            return false
         end
 
+        local oidc = require("resty.openidc")
+        local cjson = require "cjson"
+--        oidc.set_logging(nil, { DEBUG = ngx.INFO })
+
         local ips = { {{ auth_bypass_ips }} }
         if not ip:match(ngx.var.REMOTE_ADDR) and not has_value(ips, ngx.var.REMOTE_ADDR) then
         local opts = {
            redirect_uri = "/redirect_uri",
-           discovery = "https://{{ auth_provider_domain }}/auth/realms/{{ keycloak_realm }}/.well-known/openid-configuration",
+           discovery = "https://{{ auth_provider_domain }}/realms/{{ keycloak_realm }}/.well-known/openid-configuration",
            client_id = "{{ keycloak_client_name }}",
            client_secret = "{{ keycloak_client_secret }}",
            redirect_uri_scheme = "https",
            logout_path = "/logout",
-           redirect_after_logout_uri = "https://{{ auth_provider_domain }}/auth/realms/{{ keycloak_realm }}/protocol/openid-connect/logout?redirect_uri={{ keycloak_redirect }}",
+           redirect_after_logout_uri = "https://{{ auth_provider_domain }}/realms/{{ keycloak_realm }}/protocol/openid-connect/logout?redirect_uri={{ keycloak_redirect }}",
            redirect_after_logout_with_id_token_hint = false,
            renew_access_token_on_expiry = true,
            access_token_expires_leeway = 60,
@@ -38,21 +42,32 @@ access_by_lua_block {
            session_contents = {id_token=true, access_token=true}
          }
          -- call introspect for OAuth 2.0 Bearer Access Token validation
-         local res, err = require("resty.openidc").authenticate(opts)
+         local res, err = oidc.authenticate(opts)
+         local parsed_token, token_err = oidc.jwt_verify(res.access_token, opts)
 
-         -- if err or not res or not has_value(res.id_token.realm_access.roles, '{{ keycloak_access_group }}') or then
-         if err or not res or not has_value(res.id_token.resource_access.Nginx.roles, '{{ keycloak_access_group }}') then
-           --return ngx.redirect("/terms_of_use.html")         
+         for k,v in ipairs(parsed_token.realm_access.roles) do
+            table.insert(parsed_token.resource_access.Nginx.roles, v)
+         end
+
+         if err or not res or not has_value(parsed_token.resource_access.Nginx.roles, "{{ keycloak_access_group }}") then
+           --return ngx.redirect("/terms_of_use.html")
            ngx.exit(ngx.HTTP_FORBIDDEN)
          end
 
          ngx.req.set_header("X-Auth-Role", 'user')
-         if has_value(res.id_token.resource_access.Nginx.roles, '{{ keycloak_access_group }}_admin') then
+         if has_value(parsed_token.resource_access.Nginx.roles, '{{ keycloak_access_group }}_admin') then
             ngx.req.set_header("X-Auth-Role", 'admin')
          end
 
-  {% for reqheader in nginx_auth_headers %} 
-     {{ reqheader }}
-  {% endfor %}
+{% if header_access_token is defined and header_access_token|bool==true %}
+         ngx.req.set_header("X-Access_Token", res.access_token)
+{% endif %}
+{% if header_access_token_decoded is defined and header_access_token_decoded|bool==true %}
+         ngx.req.set_header("X-Access_Token_Decoded", cjson.encode(parsed_token))
+{% endif %}         
+
+         {% for reqheader in nginx_auth_headers %} 
+            {{ reqheader }}
+         {% endfor %}
       end
 }
