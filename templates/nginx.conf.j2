@@ -36,6 +36,10 @@ http {
     scgi_temp_path        /var/run/openresty/nginx-scgi;
     client_max_body_size 200M;
 
+    proxy_buffer_size   128k;
+    proxy_buffers   4 256k;
+    proxy_busy_buffers_size   256k;
+
     sendfile        on;
     #tcp_nopush     on;
     tcp_nodelay on;
