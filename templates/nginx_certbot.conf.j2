@@ -9,8 +9,9 @@ server {
 server {
   server_name {{ cert_domain }};
 
-  listen 443 ssl http2;
-  listen [::]:443 ssl http2;
+  listen 443 ssl;
+  listen [::]:443 ssl;
+  http2 on;
   include snippets/ssl.conf;
 
   ssl_certificate {{ container_cert_path }};

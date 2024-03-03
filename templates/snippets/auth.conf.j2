@@ -42,20 +42,27 @@ access_by_lua_block {
            session_contents = {id_token=true, access_token=true}
          }
          -- call introspect for OAuth 2.0 Bearer Access Token validation
-         local res, err = oidc.authenticate(opts)
+         local res, err, target, session = oidc.authenticate(opts)
+         if err or not res then
+            ngx.log(ngx.ERR, "Authentication failed: ", res, err)
+            ngx.exit(ngx.HTTP_FORBIDDEN)
+            return -- Ensure we don't proceed further in case of error
+         end
+         -- Now that we have confirmed `res` is not nil, we can safely access its properties
          local parsed_token, token_err = oidc.jwt_verify(res.access_token, opts)
-
-         for k,v in ipairs(parsed_token.realm_access.roles) do
-            table.insert(parsed_token.resource_access.Nginx.roles, v)
+         if token_err or not parsed_token then
+             ngx.log(ngx.ERR, "Token verification failed: ", token_err)
+             ngx.exit(ngx.HTTP_FORBIDDEN)
+             return -- Ensure we don't proceed further in case of token verification error
          end
 
-         if err or not res or not has_value(parsed_token.resource_access.Nginx.roles, "{{ keycloak_access_group }}") then
+         if err or not res or not has_value(parsed_token.realm_access.roles, "{{ keycloak_access_group }}") then
            --return ngx.redirect("/terms_of_use.html")
            ngx.exit(ngx.HTTP_FORBIDDEN)
          end
 
          ngx.req.set_header("X-Auth-Role", 'user')
-         if has_value(parsed_token.resource_access.Nginx.roles, '{{ keycloak_access_group }}_admin') then
+         if has_value(parsed_token.realm_access.roles, '{{ keycloak_access_group }}_admin') then
             ngx.req.set_header("X-Auth-Role", 'admin')
          end
 
